@@ -1,0 +1,54 @@
+version: "3.9"
+services:
+
+  postgresql.db.ping.statefun.rd.mvillalobos:
+    image: postgres:12.3
+    container_name: postgresql.db.ping.statefun.rd.mvillalobos
+    ports:
+      - "5432:5432"
+    env_file:
+      - src/main/docker-compose/envs/db.env
+    volumes:
+      - db.ping.statefun.rd.mvillalobos:/var/lib/postgresql/data
+
+  liquibase.ping.statefun.rd.mvillalobos:
+    image: liquibase/liquibase
+    container_name: liquibase.ping.statefun.rd.mvillalobos
+    command: --url=jdbc:postgresql://postgresql.db.ping.statefun.rd.mvillalobos:5432/component?user=component&password=component --changeLogFile=db.changelog-master.xml update
+    volumes:
+      - ./src/main/resources/db/changelog:/liquibase/changelog
+    depends_on:
+      - postgresql.db.ping.statefun.rd.mvillalobos
+
+  schemaspy.ping.statefun.rd.mvillalobos:
+    image: schemaspy/schemaspy
+    volumes:
+      - ./src/main/docker-compose/schemaspy/schemaspy.properties:/schemaspy.properties
+      - schemaspy.ping.statefun.rd.mvillalobos:/output:rw
+    depends_on:
+      - liquibase.ping.statefun.rd.mvillalobos
+
+  www.schemaspy.ping.statefun.rd.mvillalobos:
+    image: nginx
+    volumes:
+      - schemaspy.ping.statefun.rd.mvillalobos:/output:ro
+      - ./src/main/docker-compose/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8090:80"
+    depends_on:
+      - schemaspy.ping.statefun.rd.mvillalobos
+
+  ping.statefun.rd.mvillalobos:
+    build:
+      context: .
+    image: rd.mvillalobos/statefun/ping:latest
+    hostname: ping.statefun.rd.mvillalobos
+    env_file:
+      - src/main/docker-compose/envs/ping.env
+    ports:
+      - "8080:8080"
+
+volumes:
+  db.ping.statefun.rd.mvillalobos: {}
+  schemaspy.ping.statefun.rd.mvillalobos: {}
+
