@@ -24,6 +24,7 @@ ext {
 	javaFakerVersion = '1.0.2'
 	logbackEncoderVersion = '6.6'
 	testcontainersVersion = '1.17.3'
+	stateFunVersion = '3.2.0'
 	swaggerVersion = '3.0.0'
 	snippetsDir= 'build/generated-snippets'
 }
@@ -37,6 +38,7 @@ dependencyManagement {
 		dependency "com.github.javafaker:javafaker:${javaFakerVersion}"
 		dependency "net.logstash.logback:logstash-logback-encoder:${logbackEncoderVersion}"
 		dependency "io.springfox:springfox-boot-starter:${swaggerVersion}"
+		dependency "org.apache.flink:statefun-sdk-java:${stateFunVersion}"
 	}
 }
 
@@ -44,22 +46,18 @@ dependencies {
 	implementation ('com.github.javafaker:javafaker') {
 		exclude group: 'org.yaml', module: 'snakeyaml'
 	}
+	implementation 'org.apache.flink:statefun-sdk-java'
 	implementation 'net.logstash.logback:logstash-logback-encoder'
 	implementation 'io.springfox:springfox-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.liquibase:liquibase-core'
+	implementation 'org.springframework.kafka:spring-kafka'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.testcontainers:postgresql'
 }
 
 test {

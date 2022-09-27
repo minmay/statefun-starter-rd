@@ -1,54 +1,66 @@
 version: "3.9"
 services:
 
-  postgresql.db.ping.statefun.rd.mvillalobos:
-    image: postgres:12.3
-    container_name: postgresql.db.ping.statefun.rd.mvillalobos
+  zookeeper.kafka.statefun.rd.mvillalobos:
+    image: confluentinc/cp-zookeeper:5.4.1
     ports:
-      - "5432:5432"
+      - "2181:2181"
+    container_name: zookeeper.kafka.statefun.rd.mvillalobos
     env_file:
-      - src/main/docker-compose/envs/db.env
-    volumes:
-      - db.ping.statefun.rd.mvillalobos:/var/lib/postgresql/data
+      - envs/zookeeper.env
 
-  liquibase.ping.statefun.rd.mvillalobos:
-    image: liquibase/liquibase
-    container_name: liquibase.ping.statefun.rd.mvillalobos
-    command: --url=jdbc:postgresql://postgresql.db.ping.statefun.rd.mvillalobos:5432/component?user=component&password=component --changeLogFile=db.changelog-master.xml update
-    volumes:
-      - ./src/main/resources/db/changelog:/liquibase/changelog
-    depends_on:
-      - postgresql.db.ping.statefun.rd.mvillalobos
-
-  schemaspy.ping.statefun.rd.mvillalobos:
-    image: schemaspy/schemaspy
-    volumes:
-      - ./src/main/docker-compose/schemaspy/schemaspy.properties:/schemaspy.properties
-      - schemaspy.ping.statefun.rd.mvillalobos:/output:rw
-    depends_on:
-      - liquibase.ping.statefun.rd.mvillalobos
-
-  www.schemaspy.ping.statefun.rd.mvillalobos:
-    image: nginx
-    volumes:
-      - schemaspy.ping.statefun.rd.mvillalobos:/output:ro
-      - ./src/main/docker-compose/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  broker.kafka.statefun.rd.mvillalobos:
+    image: confluentinc/cp-kafka:5.4.1
     ports:
-      - "8090:80"
+      - "9092:9092"
+      - "29092:29092"
+    container_name: broker.kafka.statefun.rd.mvillalobos
     depends_on:
-      - schemaspy.ping.statefun.rd.mvillalobos
+      - zookeeper.kafka.statefun.rd.mvillalobos
+    env_file:
+      - envs/kafka.env
 
-  ping.statefun.rd.mvillalobos:
+  master.statefun.rd.mvillalobos:
+    image: apache/flink-statefun:3.2.0-java11
+    expose:
+      - "6123"
+    ports:
+      - "8082:8081"
+      - "8090:8090"
+      - "8091:8091"
+    env_file:
+      - envs/master-statefun.env
+    volumes:
+      - ./module.yaml:/opt/statefun/modules/remote/module.yaml
+
+  worker.statefun.rd.mvillalobos:
+    image: apache/flink-statefun:3.2.0-java11
+    expose:
+      - "6121"
+      - "6122"
+    depends_on:
+      - master.statefun.rd.mvillalobos
+    links:
+      - "master.statefun.rd.mvillalobos:master"
+    env_file:
+      - envs/worker-statefun.env
+    volumes:
+      - ./module.yaml:/opt/statefun/modules/remote/module.yaml
+
+  java.statefun.rd.mvillalobos:
     build:
-      context: .
+      context: ping-statefun-app
     image: rd.mvillalobos/statefun/ping:latest
-    hostname: ping.statefun.rd.mvillalobos
+    hostname: java.statefun.rd.mvillalobos
     env_file:
-      - src/main/docker-compose/envs/ping.env
+      - envs/ping.env
     ports:
       - "8080:8080"
 
-volumes:
-  db.ping.statefun.rd.mvillalobos: {}
-  schemaspy.ping.statefun.rd.mvillalobos: {}
-
+  python.statefun.rd.mvillalobos:
+    build:
+      context: pong-statefun-app
+    image: rd.mvillalobos/statefun/pong:latest
+    hostname: python.statefun.rd.mvillalobos
+    ports:
+      - "8000:8000"

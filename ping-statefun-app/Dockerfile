@@ -5,11 +5,11 @@ FROM gradle:6.9.1-jdk11 as build
 LABEL vendor="Marco Villalobos"
 LABEL app="ping"
 
-ENV APP_DIR /opt/rd/statefun/ping/
+ENV APP_DIR /opt/rd/statefun/ping
 ENV GRADLE_OPTS -Dorg.gradle.daemon=false
 ENV JVM_OPTIONS "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 
-WORKDIR $APP_DIR
+WORKDIR $APP_DIR/
 ADD build.gradle $APP_DIR/
 ADD settings.gradle $APP_DIR/
 RUN mkdir -p $APP_DIR/src/main
@@ -21,8 +21,8 @@ FROM azul/zulu-openjdk:11 AS deployment
 EXPOSE 8080
 EXPOSE 5005
 ENV SERVER_PORT 8080
-ENV APP_DIR /opt/rd/statefun/ping/
-WORKDIR $APP_DIR
+ENV APP_DIR /opt/rd/statefun/ping
+WORKDIR $APP_DIR/
 
 COPY --from=build $APP_DIR/build/libs/ping.jar $APP_DIR/build/libs/
 ADD run.sh $APP_DIR/

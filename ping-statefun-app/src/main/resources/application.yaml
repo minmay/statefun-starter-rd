@@ -10,7 +10,7 @@ spring.application.name: ping
 info.app.name: ${spring.application.name}
 
 # A description of this application for the info actuator endpoint.
-info.app.description: Spring Boot microservice reference architecture
+info.app.description: Ping Stateful Function
 
 # Controls how much git information to display in the actuator/info endpoint. Values are: simple or full
 management.info.git.mode: simple
@@ -21,31 +21,26 @@ management.endpoints.web.exposure.include: "*"
 # When to show full health details.
 management.endpoint.health.show-details: always
 
-#spring.jpa.hibernate.ddl-auto: create
-
-# JDBC URL of the database.
-# override with env variable SPRING_DATASOURCE_URL
-spring.datasource.url: jdbc:tc:postgresql:12.5://localhost:5432/postgres
-
-# Login username of the database.
-# override with env variable SPRING_DATASOURCE_USERNAME
-spring.datasource.username: ping
-
-# Login password of the database.
-# override with env variable SPRING_DATASOURCE_PASSWORD
-spring.datasource.password: ping
-
-# Change log configuration path.
-# override with env variable SPRING_LIQUIBASE_CHANGELOG
-spring.liquibase.change-log: db/changelog/db.changelog-master.xml
-
-# Whether to enable Liquibase support.
-# override with env variable SPRING_LIQUIBASE_ENABLED
-spring.liquibase.enabled: true
-
-# Base path to be used by Spring Data REST to expose repository resources.
-spring.data.rest.base-path: /data/rest/
-
 # Flag that indicates if springfox should scan services to produce specifications.
 # Turn this to false in production to disable swagger.
 springfox.documentation.enabled: true
+
+# Comma-delimited list of host:port pairs to use for establishing the initial connections to the Kafka cluster. Applies to all components unless overridden.
+# override with env variable SPRING_KAFKA_BOOTSTRAPSERVERS
+spring.kafka.bootstrap-servers: localhost:9092
+
+# spring.kafka.properties.*
+# Additional properties, common to producers and consumers, used to configure the client.
+spring.kafka.properties:
+  # configures kafka security protocol. Valid values are PLAINTEXT or SSL.
+  # override with env variable SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
+  security.protocol: ${SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL:PLAINTEXT}
+
+# Serializer class for keys.
+spring.kafka.producer.key-serializer: org.apache.kafka.common.serialization.StringSerializer
+# Serializer class for values.
+spring.kafka.producer.value-serializer: mvillalobos.rd.statefun.ping.implementation.io.StateFunStringSerializer
+
+# the ingress topic used to receive concept evaluation request.
+# override with env variable MVILLALOBOS_RD_STATEFUN_PING_PINGREQUEST_STATEFUN_INGRESS_TOPIC
+mvillalobos.rd.statefun.ping.ping-request.statefun.ingress.topic: ping-request

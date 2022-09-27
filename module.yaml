@@ -1,0 +1,51 @@
+kind: io.statefun.kafka.v1/ingress
+spec:
+  # the ingress identifier associated with this ingress
+  id: ping/request
+  # address of the kafka bootstrap servers
+  address: broker.kafka.statefun.rd.mvillalobos:29092
+  consumerGroupId: routable-kafka-e2e
+  startupPosition:
+    # the kafka offset start up position. values can be:
+    # earliest, latest, group-offsets, or date with a date field in format: "2020-02-01 04:15:00.00 Z"
+    type: group-offsets
+  topics:
+    - topic: ping-request
+      valueType: io.statefun.types/string
+      targets:
+        - java.mvillalobos.rd.statefun/ping
+---
+kind: io.statefun.kafka.v1/egress
+spec:
+  id: ping/response
+  # address of the kafka bootstrap servers
+  address: broker.kafka.statefun.rd.mvillalobos:29092
+  deliverySemantic:
+    type: exactly-once
+    transactionTimeout: 15min
+---
+kind: io.statefun.endpoints.v2/http
+spec:
+  functions: java.mvillalobos.rd.statefun/*
+  # use the internal when the stateful functions run on machine
+  # use the service domain when stateful functions in within docker
+#  urlPathTemplate: http://host.docker.internal:8080/{function.name}
+  urlPathTemplate: http://java.statefun.rd.mvillalobos:8080/{function.name}
+  transport:
+    timeouts:
+      call: 1 min
+      read: 10 sec
+      write: 10 sec
+---
+kind: io.statefun.endpoints.v2/http
+spec:
+  functions: python.mvillalobos.rd.statefun/*
+  # use the internal when the stateful functions run on machine
+  # use the service domain when stateful functions in within docker
+#  urlPathTemplate: http://host.docker.internal:8000/statefun
+  urlPathTemplate: http://python.statefun.rd.mvillalobos:8000/statefun
+  transport:
+    timeouts:
+      call: 1 min
+      read: 10 sec
+      write: 10 sec
